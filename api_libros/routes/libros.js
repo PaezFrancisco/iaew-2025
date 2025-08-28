@@ -1,115 +1,52 @@
-const express = require('express');
-const router = express.Router();
-const libros = require('../data');
-const Joi = require('joi');
+const express = require("express"); 
+const router = express.Router(); 
+ 
+const Libro = require("../models/Libro"); 
+ 
+// Ruta para obtener todos los libros 
+router.get("/", async (req, res) => { 
+  try { 
+    const libros = await Libro.find(); 
+    res.json(libros); 
+  } catch (error) { 
+    res.status(500).json({ error: "Error al obtener los libros" }); 
+  } 
+}); 
+ 
+// Ruta para crear un nuevo Libro 
+router.post("/", async (req, res) => { 
+  try { 
+    const nuevoLibro = new Libro(req.body); 
+    await nuevoLibro.save(); 
+    res.json(nuevoLibro); 
+  } catch (error) { 
+    res.status(500).json({ error: "Error al crear el Libro" }); 
+  } 
+}); 
+ 
+// Ruta para actualizar un Libro existente 
+router.put("/:id", async (req, res) => { 
+  try { 
+    const Libro = await Libro.findByIdAndUpdate(req.params.id, req.body, 
+{ 
+      new: true, 
+    }); 
+ 
+    res.json(Libro); 
+} catch (error) { 
+  res.status(500).json({ error: "Error al actualizar el Libro" }); 
+} 
+}); 
 
-const libroSchema = Joi.object({
-    titulo: Joi.string().required().label('Título'),
-    autor: Joi.string().required().label('Autor')
-});
+// Ruta para eliminar un Libro 
+router.delete('/:id', async (req, res) => { 
+  try { 
+    await Libro.findByIdAndDelete(req.params.id); 
+    res.json({ message: 'Libro eliminado correctamente' }); 
+  } catch (error) { 
+    res.status(500).json({ error: 'Error al eliminar el Libro' }); 
+  } 
+}); 
 
-// Obtener todos los libros 
-router.get('/', (req, res, next) => {
-    try {
-        res.json(libros);
-    } catch (err) {
-        next(err);
-    }
-});
+module.exports = router; 
 
-// Obtener un libro por ID 
-router.get('/:id', (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const libro = libros.find((l) => l.id === id);
-
-        if (!libro) {
-            const error = new Error('Libro no encontrado');
-            error.status = 404;
-            throw error;
-        } res.json(libro);
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Crear un nuevo libro 
-router.post('/', (req, res, next) => {
-    try {
-        const { error, value } = libroSchema.validate(req.body);
-        if (error) {
-            const validationError = new Error('Error de validación');
-            validationError.status = 400;
-            validationError.details = error.details.map(detail =>
-                detail.message);
-            throw validationError;
-        }
-
-        const { titulo, autor } = value;
-
-        const nuevoLibro = {
-            id: libros.length + 1,
-            titulo,
-            autor
-        };
-
-        libros.push(nuevoLibro);
-        res.status(201).json(nuevoLibro);
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Actualizar un libro existente 
-router.put('/:id', (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const { error, value } = libroSchema.validate(req.body);
-        if (error) {
-            const validationError = new Error('Error de validación');
-            validationError.status = 400;
-            validationError.details = error.details.map(detail =>
-                detail.message);
-            throw validationError;
-
-        }
-
-        const { titulo, autor } = value;
-
-        const libro = libros.find((l) => l.id === id);
-
-        if (!libro) {
-            const error = new Error('Libro no encontrado');
-            error.status = 404;
-            throw error;
-        }
-
-        libro.titulo = titulo || libro.titulo;
-        libro.autor = autor || libro.autor;
-
-        res.json(libro);
-    } catch (err) {
-        next(err);
-    }
-});
-
-// Eliminar un libro 
-router.delete('/:id', (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const index = libros.findIndex((l) => l.id === id);
-
-        if (index === -1) {
-            const error = new Error('Libro no encontrado');
-            error.status = 404;
-            throw error;
-        }
-
-        const libroEliminado = libros.splice(index, 1);
-        res.json(libroEliminado[0]);
-    } catch (err) {
-        next(err);
-    }
-});
-
-module.exports = router;

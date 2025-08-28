@@ -1,7 +1,7 @@
 {
-  "name": "tp_1",
+  "name": "api_libros",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "playground-1.mongodb.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,6 +11,6 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
-    "joi": "^18.0.0"
+    "mongoose": "^8.18.0"
   }
 }
